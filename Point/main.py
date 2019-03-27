@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
 
+curveY = random.randint(-100,100)
+
 #Generace dat
 def generateData(val):
     data = np.empty((0,2), int)
@@ -19,16 +21,16 @@ def generateData(val):
 def testData(data):
     label = np.empty((0,1), int)
     for i in data:
-        if(i[1] < 0):
+        if(i[1] < curveY):
             label = np.append(label, 0)
         else:
             label = np.append(label, 1)
     return label
 
 #Plotting
-def plotData(data, label):
-    point1 = (-500, 0)
-    point2 = (500, 0)
+def plotData(data, label, width):
+    point1 = (-500, curveY)
+    point2 = (500, curveY)
 
     tt.hideturtle()
     tt.pencolor("blue")
@@ -39,7 +41,7 @@ def plotData(data, label):
     tt.goto(point2)
     tt.penup()
 
-    for i in range(0, 100):
+    for i in range(0, width):
         if(label[i] == 1):
             tt.pencolor("black")
         else:
@@ -51,10 +53,10 @@ def plotData(data, label):
 
 
 #Main
-train_data = generateData(50000)
+train_data = generateData(100000)
 train_label = testData(train_data)
 
-test_data = generateData(10000)
+test_data = generateData(50000)
 test_label = testData(test_data)
 
 print("Data shape:")
@@ -63,17 +65,17 @@ print("Data: "+str(train_data))
 print("Index: "+str(train_data[0,0]))
 print("----------------")
 
-plotData(test_data, test_label)
+plotData(test_data, test_label, 100)
 
 #AI
 model = keras.Sequential([ 
-    keras.layers.Dense(32, input_shape=(2,)),
-    keras.layers.Dense(4,activation=tf.nn.softmax),
+    keras.layers.Dense(2, input_shape=(2,)),
+    keras.layers.Dense(1,activation=tf.nn.sigmoid),
 ])
 
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+              loss='binary_crossentropy',
+              metrics=['acc'])
 
 model.fit(train_data, train_label, epochs=5)
 
@@ -88,5 +90,5 @@ for i in predictions:
     predictionsTest.append(i[0])
 
 tt.clear()
-plotData(test_data, predictionsTest)
+plotData(test_data, predictionsTest, 500)
 tt.exitonclick()
