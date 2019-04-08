@@ -68,11 +68,11 @@ plotData(test_data, test_label)
 #AI
 model = keras.Sequential([ 
     keras.layers.Dense(32, input_shape=(2,)),
-    keras.layers.Dense(4,activation=tf.nn.softmax),
+    keras.layers.Dense(1, activation=tf.nn.sigmoid)
 ])
 
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
+              loss='binary_crossentropy',
               metrics=['accuracy'])
 
 model.fit(train_data, train_label, epochs=5)
