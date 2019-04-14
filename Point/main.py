@@ -51,10 +51,10 @@ def plotData(data, label):
 
 
 #Main
-train_data = generateData(50000)
+train_data = generateData(5000)
 train_label = testData(train_data)
 
-test_data = generateData(10000)
+test_data = generateData(1000)
 test_label = testData(test_data)
 
 print("Data shape:")
@@ -68,6 +68,9 @@ plotData(test_data, test_label)
 #AI
 model = keras.Sequential([ 
     keras.layers.Dense(32, input_shape=(2,)),
+    keras.layers.Dropout(0.5),
+    keras.layers.Dense(16, input_shape=(2,)),
+    keras.layers.Dropout(0.5),
     keras.layers.Dense(1, activation=tf.nn.sigmoid)
 ])
 
@@ -75,7 +78,7 @@ model.compile(optimizer='adam',
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
-model.fit(train_data, train_label, epochs=5)
+model.fit(train_data, train_label, epochs=10)
 
 test_loss, test_acc = model.evaluate(test_data, test_label)
 print('Test accuracy:', test_acc)
