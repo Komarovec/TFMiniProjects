@@ -1,17 +1,20 @@
 
 import random
 import numpy as np
-import turtle as tt
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
+
+#Konstanty
+a = 1
+b = 0
 
 #Generace dat
 def generateData(val):
     data = np.empty((0,2), int)
     for i in range(0, val):
-        posX = random.randint(-500,500)
-        posY = random.randint(-500,500)
+        posX = random.random()
+        posY = random.random()
         data = np.append(data, [[posX,posY]], axis=0)
     return data
 
@@ -19,35 +22,19 @@ def generateData(val):
 def testData(data):
     label = np.empty((0,1), int)
     for i in data:
-        if(i[1] < 0):
+        if(i[1] < a*i[0]+b):
             label = np.append(label, 0)
         else:
             label = np.append(label, 1)
     return label
 
 #Plotting
-def plotData(data, label):
-    point1 = (-500, 0)
-    point2 = (500, 0)
-
-    tt.hideturtle()
-    tt.pencolor("blue")
-    tt.speed(0)
-    tt.penup()
-    tt.goto(point1)
-    tt.pendown()
-    tt.goto(point2)
-    tt.penup()
-
-    for i in range(0, 100):
-        if(label[i] == 1):
-            tt.pencolor("black")
-        else:
-            tt.pencolor("red")
-        tt.penup()
-        tt.setpos(data[i]);
-        tt.pendown()
-        tt.circle(2)
+def plotData(data, label): 
+    i = 0
+    for item in data:
+        plt.plot(item[0], item[1], 'o', color = (label[i],0.0,1-label[i]))
+        i = i + 1
+    plt.show()
 
 
 #Main
@@ -67,8 +54,6 @@ plotData(test_data, test_label)
 
 #AI
 model = keras.Sequential([ 
-    keras.layers.Dense(32, input_shape=(2,)),
-    keras.layers.Dropout(0.5),
     keras.layers.Dense(16, input_shape=(2,)),
     keras.layers.Dropout(0.5),
     keras.layers.Dense(1, activation=tf.nn.sigmoid)
@@ -78,7 +63,10 @@ model.compile(optimizer='adam',
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
-model.fit(train_data, train_label, epochs=10)
+history = model.fit(train_data, 
+                    train_label,
+                    batch_size=128, 
+                    epochs=50)
 
 test_loss, test_acc = model.evaluate(test_data, test_label)
 print('Test accuracy:', test_acc)
@@ -90,6 +78,4 @@ predictionsTest = []
 for i in predictions:
     predictionsTest.append(i[0])
 
-tt.clear()
 plotData(test_data, predictionsTest)
-tt.exitonclick()
