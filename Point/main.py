@@ -32,7 +32,7 @@ def testData(data):
 def plotData(data, label): 
     i = 0
     for item in data:
-        plt.plot(item[0], item[1], 'o', color = (label[i],0.0,1-label[i]))
+        plt.plot(item[0], item[1], 'o', color = (label[i],1-label[i],0.0))
         i = i + 1
     plt.show()
 
