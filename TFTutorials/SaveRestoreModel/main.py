@@ -44,3 +44,39 @@ model = create_model()
 model.fit(train_images, train_labels,  epochs = 10, 
           validation_data = (test_images,test_labels),
           callbacks = [cp_callback])
+
+
+#Nový cisty model
+model = create_model()
+
+#Test noveho modelu
+loss, acc = model.evaluate(test_images, test_labels)
+print("Untrained model, accuracy: {:5.2f}%".format(100*acc))
+
+#Nahraní checkpointu
+model.load_weights(checkpoint_path)
+loss,acc = model.evaluate(test_images, test_labels)
+print("Restored model, accuracy: {:5.2f}%".format(100*acc))
+
+
+#Manualní uložení modelu
+model.save_weights('./checkpoints/my_checkpoint')
+
+#Obnovení modelu
+model = create_model()
+model.load_weights('./checkpoints/my_checkpoint')
+
+loss,acc = model.evaluate(test_images, test_labels)
+print("Restored model, accuracy: {:5.2f}%".format(100*acc))
+
+
+#Ulozeni celeho modelu
+model = create_model()
+
+model.fit(train_images, train_labels, epochs=5)
+
+model.save('my_model.h5')
+
+# Vytvorení modelu
+new_model = keras.models.load_model('my_model.h5')
+new_model.summary()
