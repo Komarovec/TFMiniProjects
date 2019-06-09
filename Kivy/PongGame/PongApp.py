@@ -5,6 +5,25 @@ from kivy.properties import NumericProperty, ReferenceListProperty,\
 from kivy.vector import Vector
 from kivy.clock import Clock
 
+import tensorflow as tf
+from tensorflow import keras
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+class Agent():
+    def initializeModel(self):
+        model = keras.Sequential([
+            keras.layers.Flatten(input_shape=(2, 2)),
+            keras.layers.Dense( 8, activation=tf.nn.sigmoid),
+            keras.layers.Dense( 4, activation=tf.nn.sigmoid),
+            keras.layers.Dense( 1, activation=tf.nn.sigmoid)
+        ])
+
+        model.compile(optimizer="adam")
+
+        model.summary()
+
 
 class PongPaddle(Widget):
     score = NumericProperty(0)
@@ -28,6 +47,9 @@ class PongBall(Widget):
 
 
 class PongGame(Widget):
+    agent = Agent()
+    agent.initializeModel()
+
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
@@ -61,8 +83,8 @@ class PongGame(Widget):
         if touch.x > self.width - self.width / 3:
             self.player2.center_y = touch.y
     
-    def on_touch_down(self, touch):
-        self.ball.pos = Vector(touch.x, touch.y)
+    #def on_touch_down(self, touch):
+        # self.ball.pos = Vector(touch.x, touch.y)
 
 
 
