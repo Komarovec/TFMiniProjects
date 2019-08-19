@@ -30,9 +30,11 @@ class Agent():
         #Create model
         self.model = keras.Sequential([
             keras.layers.Flatten(input_shape=(28, 28)),
-            keras.layers.Dense(128, activation=tf.nn.relu),
+            keras.layers.Dense(128, activation=tf.nn.sigmoid),
             keras.layers.Dropout(0.5),
-            keras.layers.Dense(10, activation=tf.nn.softmax)
+            keras.layers.Dense(64, activation=tf.nn.sigmoid),
+            keras.layers.Dropout(0.5),
+            keras.layers.Dense(10, activation=tf.nn.sigmoid)
         ])
 
         #Compile model
