@@ -3,9 +3,9 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 mnist = input_data.read_data_sets("./tmp/data/", one_hot=True)
 
-n_nodes_hl1 = 1024
-n_nodes_hl2 = 512
-n_nodes_hl3 = 256
+n_nodes_hl1 = 32
+n_nodes_hl2 = 32
+n_nodes_hl3 = 32
 
 
 n_classes = 10
@@ -54,6 +54,8 @@ def train_neural_network(x):
             epoch_loss = 0
             for _ in range(int(mnist.train.num_examples/batch_size)):
                 epoch_x, epoch_y = mnist.train.next_batch(batch_size)
+                print(epoch_x.shape)
+                print("-------")
                 _, c = sess.run([optimizer, cost], feed_dict = {x: epoch_x, y: epoch_y})
                 epoch_loss += c
             print("Epoch:", epoch, " completed out of:", hm_epochs, " loss:", epoch_loss)

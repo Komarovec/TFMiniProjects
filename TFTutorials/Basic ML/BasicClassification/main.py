@@ -32,7 +32,9 @@ test_images = test_images / 255.0
 #Create model
 model = keras.Sequential([
     keras.layers.Flatten(input_shape=(28, 28)),
-    keras.layers.Dense(128, activation=tf.nn.relu),
+    keras.layers.Dense(1024, activation=tf.nn.relu),
+    keras.layers.Dropout(0.5),
+    keras.layers.Dense(512, activation=tf.nn.sigmoid),
     keras.layers.Dropout(0.5),
     keras.layers.Dense(10, activation=tf.nn.softmax)
 ])
