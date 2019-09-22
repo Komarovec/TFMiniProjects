@@ -3,87 +3,107 @@
 
 import gym
 import numpy as np
+import random
+import keras
+from collections import deque
+from keras.layers import Dense
+from keras import Sequential
+from keras.optimizers import Adam
 
 env = gym.make("MountainCar-v0")
 
-LEARNING_RATE = 0.1
-
+#Q learning
+LEARNING_RATE = 0.9
 DISCOUNT = 0.95
-EPISODES = 25000
-SHOW_EVERY = 3000
 
-DISCRETE_OS_SIZE = [20] * len(env.observation_space.high)
-discrete_os_win_size = (env.observation_space.high - env.observation_space.low)/DISCRETE_OS_SIZE
+#AI
+BATCH_SIZE = 20
+EXPLORATION_RATE_MAX = 1.0
+EXPLORATION_RATE_MIN = 0.1
+EXPLORATION_RATE_DECAY = 0.999
 
-# Exploration settings
-epsilon = 1  # not a constant, qoing to be decayed
-START_EPSILON_DECAYING = 1
-END_EPSILON_DECAYING = EPISODES//2
-epsilon_decay_value = epsilon/(END_EPSILON_DECAYING - START_EPSILON_DECAYING)
+def createModel(inputs, outputs):
+    model = keras.Sequential()
+    model.add(Dense(24, input_dim=inputs, activation="relu"))
+    model.add(Dense(24, activation="relu"))
+    model.add(Dense(outputs, activation="linear"))
+    model.compile(loss="mse", optimizer=Adam(lr=LEARNING_RATE))
 
+    return model
 
-q_table = np.random.uniform(low=-2, high=0, size=(DISCRETE_OS_SIZE + [env.action_space.n]))
-
-
-def get_discrete_state(state):
-    discrete_state = (state - env.observation_space.low)/discrete_os_win_size
-    return tuple(discrete_state.astype(np.int))  # we use this tuple to look up the 3 Q values for the available actions in the q-table
-
-
-for episode in range(EPISODES):
-    discrete_state = get_discrete_state(env.reset())
-    done = False
-
-    if episode % SHOW_EVERY == 0:
-        render = True
-        print(episode)
+def think(observation, model, exploration):
+    if(np.random.random() < exploration):
+        return env.action_space.sample()
     else:
-        render = False
+        return np.argmax(model.predict(observation)[0])
 
-    while not done:
+observation_space = env.observation_space.shape[0]
+action_space = env.action_space.n
 
-        if np.random.random() > epsilon:
-            # Get action from Q table
-            action = np.argmax(q_table[discrete_state])
-        else:
-            # Get random action
-            action = np.random.randint(0, env.action_space.n)
+model = createModel(observation_space, action_space)
+exploration_rate = EXPLORATION_RATE_MAX
+memory = deque()
+
+run = 0
+
+while True:
+    run += 1
+    steps = 0
+    print("Run: {}".format(run))
+    obs = env.reset()
+    obs = np.array([obs])
+
+    while True:
+        env.render()
+        steps += 1
+        
+        action = think(obs, model, exploration_rate)
+
+        obs1, reward, done, _ = env.step(action)
+        obs1 = np.array([obs1])
+
+        reward = reward if not done else -reward
+        deltaPos = abs(obs[0][0]-obs1[0][0])
+        deltaPos = deltaPos - 0.2
+
+        if(deltaPos < 0):
+            deltaPos = -1
+
+        reward = deltaPos
+
+        print(reward)
+
+        memory.append((obs, action, reward, obs1, done))
+
+        obs = obs1
 
 
-        new_state, reward, done, _ = env.step(action)
+        if(done):
+            print("Exploration rate: {}, Steps: {}".format(exploration_rate, steps))
+            print("-------------")
+            break
 
-        new_discrete_state = get_discrete_state(new_state)
+        #Experience replay
+        if(len(memory) > BATCH_SIZE):
+            batch = random.sample(memory, BATCH_SIZE)
 
-        if episode % SHOW_EVERY == 0:
-            env.render()
-        #new_q = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward + DISCOUNT * max_future_q)
+            for obs, action, reward, obs1, done in batch:
+                q_update = reward
+                if not done:
+                    q_update = reward + DISCOUNT * np.amax(model.predict(obs1)[0])
 
-        # If simulation did not end yet after last step - update Q table
-        if not done:
+                q_values = model.predict(obs)
+                q_values[0][action] = q_update
 
-            # Maximum possible Q value in next step (for new state)
-            max_future_q = np.max(q_table[new_discrete_state])
+                model.fit(obs, q_values, verbose=0)
 
-            # Current Q value (for current state and performed action)
-            current_q = q_table[discrete_state + (action,)]
-
-            # And here's our equation for a new Q value for current state and action
-            new_q = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward + DISCOUNT * max_future_q)
-
-            # Update Q table with new Q value
-            q_table[discrete_state + (action,)] = new_q
+            exploration_rate *= EXPLORATION_RATE_DECAY
+            exploration_rate = max(EXPLORATION_RATE_MIN, exploration_rate)
+                
 
 
-        # Simulation ended (for any reson) - if goal position is achived - update Q value with reward directly
-        elif new_state[0] >= env.goal_position:
-            #q_table[discrete_state + (action,)] = reward
-            q_table[discrete_state + (action,)] = 0
 
-        discrete_state = new_discrete_state
 
-    # Decaying is being done every episode if episode number is within decaying range
-    if END_EPSILON_DECAYING >= episode >= START_EPSILON_DECAYING:
-        epsilon -= epsilon_decay_value
 
 
 env.close()
