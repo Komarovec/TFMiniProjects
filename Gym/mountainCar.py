@@ -13,7 +13,7 @@ from keras.optimizers import Adam
 env = gym.make("MountainCar-v0")
 
 #Q learning
-LEARNING_RATE = 0.9
+LEARNING_RATE = 0.001
 DISCOUNT = 0.95
 
 #AI
@@ -49,6 +49,7 @@ run = 0
 while True:
     run += 1
     steps = 0
+    allReward = 0
     print("Run: {}".format(run))
     obs = env.reset()
     obs = np.array([obs])
@@ -63,15 +64,17 @@ while True:
         obs1 = np.array([obs1])
 
         reward = reward if not done else -reward
-        deltaPos = abs(obs[0][0]-obs1[0][0])
-        deltaPos = deltaPos - 0.2
 
-        if(deltaPos < 0):
-            deltaPos = -1
+        if(abs(obs1[0][1]) >= 0.01 or (obs1[0][0] > -0.2 or obs[0][0] < -0.7)):
+            reward = 1
+        else:
+            reward = -1
 
-        reward = deltaPos
+        allReward += reward
 
-        print(reward)
+        #print(reward)
+        #print(obs1)
+        #print("---------------")
 
         memory.append((obs, action, reward, obs1, done))
 
@@ -79,7 +82,7 @@ while True:
 
 
         if(done):
-            print("Exploration rate: {}, Steps: {}".format(exploration_rate, steps))
+            print("Exploration rate: {}, Steps: {}, Reward: {}".format(exploration_rate, steps, allReward))
             print("-------------")
             break
 
@@ -100,10 +103,6 @@ while True:
             exploration_rate *= EXPLORATION_RATE_DECAY
             exploration_rate = max(EXPLORATION_RATE_MIN, exploration_rate)
                 
-
-
-
-
 
 
 env.close()
