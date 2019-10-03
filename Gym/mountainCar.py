@@ -9,6 +9,9 @@ from collections import deque
 from keras.layers import Dense
 from keras import Sequential
 from keras.optimizers import Adam
+from keras.models import model_from_json
+import numpy
+import os
 
 env = gym.make("MountainCar-v0")
 
@@ -60,15 +63,24 @@ while True:
         
         action = think(obs, model, exploration_rate)
 
-        obs1, reward, done, _ = env.step(action)
+        obs1, completed, done, _ = env.step(action)
         obs1 = np.array([obs1])
-
-        reward = reward if not done else -reward
 
         if(abs(obs1[0][1]) >= 0.01 or (obs1[0][0] > -0.2 or obs[0][0] < -0.7)):
             reward = 1
         else:
             reward = -1
+
+        if(completed == 1):
+            reward = 100
+
+            # serialize model to JSON
+            model_json = model.to_json()
+            with open("model.json", "w") as json_file:
+                json_file.write(model_json)
+            
+            print("SOLVED!")
+            env.close()
 
         allReward += reward
 
